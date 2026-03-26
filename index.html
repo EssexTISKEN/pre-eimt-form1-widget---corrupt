@@ -1,52 +1,156 @@
-<!doctype html><html lang='fr'><head><meta charset='utf-8'/><meta name='viewport' content='width=device-width, initial-scale=1'/>
-<title>Formulaire PRE‑EIMT (amélioré)</title>
-<link rel='stylesheet' href='styles.css'/>
-<script src='https://js.zohostatic.com/crm/client-sdk/v1.0.0/zohocrm-sdk.js'></script>
-</head><body>
-<h2>Formulaire employeur – PRÉ‑EIMT</h2>
-<div class='accordion'>
-<div class='item'><button class='head'>A. Informations générales</button><div class='content'>
-<p>1. Avez-vous déjà déposé une EIMT pour ce poste?</p>
-<p>2. Si oui, veuillez téléverser la copie PDF de l'EIMT précédente.</p>
-</div></div>
-<div class='item'><button class='head'>B. Poste visé</button><div class='content'>
-<p>3. Quel est le titre du poste?</p>
-<p>4. Avez-vous une description détaillée du poste?</p>
-<p>5. Si oui, veuillez téléverser la description du poste.</p>
-<p>6. Combien de travailleurs sont visés par cette demande?</p>
-<p>7. S’agit-il d’un renouvellement?</p>
-</div></div>
-<div class='item'><button class='head'>C. Lieu de travail</button><div class='content'>
-<p>8. Quelle est l’adresse du lieu de travail?</p>
-<p>9. Quelle est la ville du lieu de travail?</p>
-<p>10. Quel est le code postal du lieu de travail?</p>
-</div></div>
-<div class='item'><button class='head'>D. Rémunération</button><div class='content'>
-<p>11. Tous les travailleurs ont-ils le même salaire?</p>
-<p>12. Si oui, quel est le salaire horaire unique?</p>
-<p>13. Si non, veuillez indiquer le prénom, nom et salaire horaire de chaque TET.</p>
-<p>14. Payez-vous des heures supplémentaires?</p>
-<p>15. Quel est le taux des heures supplémentaires?</p>
-<p>16. Combien de jours de vacances annuelles sont offerts?</p>
-<p>17. Quels avantages sociaux offrez-vous?</p>
-<p>18. Décrivez les avantages sociaux (détails).</p>
-<p>19. Offrez-vous un régime de retraite?</p>
-<p>20. Si oui, veuillez décrire le régime de retraite.</p>
-</div></div>
-<div class='item'><button class='head'>E. Effectifs généraux</button><div class='content'>
-<p>21. Combien d’employés à temps plein avez-vous?</p>
-<p>22. Combien d’employés à temps partiel avez-vous?</p>
-</div></div>
-<div class='item'><button class='head'>F. Informations stables</button><div class='content'>
-<p>23. Nombre d’employés déclarés sous le numéro ARC?</p>
-<p>24. Vos revenus annuels dépassent-ils 5 M$?</p>
-<p>25. Participez-vous au programme Travail partagé?</p>
-<p>26. Si oui, veuillez décrire le programme.</p>
-</div></div>
-<div class='item'><button class='head'>G. Informations complémentaires</button><div class='content'>
-<p>27. Avez-vous des informations complémentaires à fournir?</p>
-<p>28. Voulez-vous téléverser d’autres documents pertinents?</p>
-</div></div>
-</div>
-<script src='app.js'></script>
-</body></html>
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Formulaire employeur – PRÉ‑EIMT</title>
+
+  <!-- SDK Zoho CRM -->
+  <script src="https://js.zohostatic.com/crm/client-sdk/v1.0.0/zohocrm-sdk.js"></script>
+
+  <link rel="stylesheet" href="styles.css"/>
+</head>
+
+<body>
+  <h1>Formulaire employeur – PRÉ‑EIMT</h1>
+
+  <form id="frm">
+
+    <!-- A. Informations générales -->
+    <section>
+      <h2>A. Informations générales</h2>
+
+      <label>1. Avez-vous déjà déposé une EIMT pour ce poste?
+        <select id="EIMT_anterieure">
+          <option value="">—</option>
+          <option value="Oui">Oui</option>
+          <option value="Non">Non</option>
+        </select>
+      </label>
+
+      <div id="grp_eimt_pdf" class="hide">
+        <label>2. Téléversez la copie PDF :
+          <input type="file" id="EIMT_anterieure_pdf" accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"/>
+        </label>
+      </div>
+    </section>
+
+    <!-- B. Poste visé -->
+    <section>
+      <h2>B. Poste visé</h2>
+
+      <label>3. Quel est le titre du poste?
+        <input type="text" id="Titre_poste"/>
+      </label>
+
+      <label>4. Avez-vous une description détaillée du poste?
+        <select id="Description_poste_existe">
+          <option value="">—</option>
+          <option value="Oui">Oui</option>
+          <option value="Non">Non</option>
+        </select>
+      </label>
+
+      <div id="grp_desc_pdf" class="hide">
+        <label>5. Téléversez la description du poste :
+          <input type="file" id="Description_poste_pdf" accept=".pdf,.doc,.docx"/>
+        </label>
+      </div>
+
+      <label>6. Combien de travailleurs sont visés par cette demande?
+        <input type="number" id="Nb_TET_vises" min="1" value="1"/>
+      </label>
+
+      <label>7. S’agit-il d’un renouvellement?
+        <select id="Renouvellement">
+          <option value="">—</option>
+          <option value="Oui">Oui</option>
+          <option value="Non">Non</option>
+        </select>
+      </label>
+    </section>
+
+    <!-- C. Lieu de travail -->
+    <section>
+      <h2>C. Lieu de travail</h2>
+
+      <label>8. Adresse :
+        <input type="text" id="Adresse_LieuTravail"/>
+      </label>
+
+      <label>9. Ville :
+        <input type="text" id="Ville_LieuTravail"/>
+      </label>
+
+      <label>10. Code postal :
+        <input type="text" id="CodePostal_LieuTravail"/>
+      </label>
+    </section>
+
+    <!-- D. Rémunération -->
+    <section>
+      <h2>D. Rémunération</h2>
+
+      <label>11. Tous les travailleurs ont-ils le même salaire?
+        <select id="Tous_meme_salaire">
+          <option value="">—</option>
+          <option value="Oui">Oui</option>
+          <option value="Non">Non</option>
+        </select>
+      </label>
+
+      <div id="grp_salaire_unique" class="hide">
+        <label>12. Salaire horaire unique :
+          <input type="number" id="Salaire_horaire_unique" step="0.01" min="0"/>
+        </label>
+      </div>
+
+      <div id="grp_liste_tet" class="hide">
+        <h3>Détails par travailleur</h3>
+        <table id="tbl_tet">
+          <thead>
+            <tr><th>Prénom</th><th>Nom</th><th>Salaire</th></tr>
+          </thead>
+          <tbody id="tbl_body"></tbody>
+        </table>
+      </div>
+
+      <label>13. Heures supplémentaires?
+        <select id="Heures_sup">
+          <option value="">—</option>
+          <option value="Oui">Oui</option>
+          <option value="Non">Non</option>
+        </select>
+      </label>
+
+      <div id="grp_taux_hs" class="hide">
+        <label>14. Taux des heures sup :
+          <input type="number" id="Taux_heures_sup" step="0.01" min="0"/>
+        </label>
+      </div>
+
+      <label>15. Nombre de jours de vacances :
+        <input type="number" id="Vacances_jours" value="10" min="0"/>
+      </label>
+    </section>
+
+    <!-- G. Informations complémentaires -->
+    <section>
+      <h2>G. Informations complémentaires</h2>
+
+      <label>16. Notes supplémentaires :
+        <textarea id="Informations_complementaires"></textarea>
+      </label>
+
+      <label>17. Documents supplémentaires :
+        <input type="file" id="Documents_supplementaires" multiple/>
+      </label>
+    </section>
+
+    <button type="button" id="btn_submit">Soumettre</button>
+    <div id="msg"></div>
+  </form>
+
+  <script src="app.js"></script>
+</body>
+</html>
