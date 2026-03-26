@@ -50,3 +50,28 @@ button {
   font-size: 16px;
   cursor: pointer;
 }
+.accordion .item {
+    border: 1px solid #dcdcdc;
+    border-radius: 8px;
+    margin-bottom: 15px;
+    background: #fafafa;
+}
+
+.accordion .head {
+    width: 100%;
+    background: #f0f2ff;
+    padding: 14px 18px;
+    cursor: pointer;
+    font-size: 17px;
+    border: none;
+    outline: none;
+    font-weight: 600;
+}
+
+.accordion .item.open .head {
+    background: #e2e6ff;
+}
+
+.accordion .content {
+    padding: 0 18px 18px 18px;
+}
