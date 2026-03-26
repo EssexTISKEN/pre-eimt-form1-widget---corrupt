@@ -1,0 +1,1 @@
+body{font-family:Arial;margin:20px;} .accordion .item{border:1px solid #ccc;margin-bottom:10px;border-radius:6px;} .head{width:100%;padding:10px;background:#eef;border:none;text-align:left;cursor:pointer;} .content{overflow:hidden;max-height:0;transition:max-height .3s ease;padding:0 12px;} .item.open .content{padding:12px;} .hide{display:none;} table,td{border:1px solid #ddd;}

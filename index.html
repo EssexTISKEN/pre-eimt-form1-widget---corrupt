@@ -1,0 +1,40 @@
+<!doctype html><html lang='fr'><head><meta charset='utf-8'/><meta name='viewport' content='width=device-width, initial-scale=1'/>
+<title>Formulaire PRÉ‑EIMT</title>
+<script src='https://js.zohostatic.com/crm/client-sdk/v1.0.0/zohocrm-sdk.js'></script>
+<link rel='stylesheet' href='styles.css'/>
+</head><body>
+<h1>Formulaire employeur – PRÉ‑EIMT</h1>
+<div class='accordion'>
+<div class='item'><button class='head'>A. Informations générales</button><div class='content'>
+<label>1. Avez-vous déjà déposé une EIMT pour ce poste?
+<select id='EIMT_anterieure'><option value=''>—</option><option>Oui</option><option>Non</option></select></label>
+<div id='grp_eimt_pdf' class='hide'><label>2. Téléverser PDF<input type='file' id='EIMT_anterieure_pdf'/></label></div>
+</div></div>
+<div class='item'><button class='head'>B. Poste visé</button><div class='content'>
+<label>3. Titre<input id='Titre_poste'></label>
+<label>4. Description existe<select id='Description_poste_existe'><option value=''>—</option><option>Oui</option><option>Non</option></select></label>
+<div id='grp_desc_pdf' class='hide'><input type='file' id='Description_poste_pdf'/></div>
+<label>6. Nb<input type='number' id='Nb_TET_vises' min='1' value='1'></label>
+<label>7. Renouvellement<select id='Renouvellement'><option value=''>—</option><option>Oui</option><option>Non</option></select></label>
+</div></div>
+<div class='item'><button class='head'>C. Lieu</button><div class='content'>
+<input id='Adresse_LieuTravail' placeholder='Adresse'>
+<input id='Ville_LieuTravail' placeholder='Ville'>
+<input id='CodePostal_LieuTravail' placeholder='Code postal'>
+</div></div>
+<div class='item'><button class='head'>D. Rémunération</button><div class='content'>
+<select id='Tous_meme_salaire'><option value=''>—</option><option>Oui</option><option>Non</option></select>
+<div id='grp_salaire_unique' class='hide'><input id='Salaire_horaire_unique' type='number'></div>
+<div id='grp_liste_tet' class='hide'><table><tbody id='tbl_body'></tbody></table></div>
+<select id='Heures_sup'><option value=''>—</option><option>Oui</option><option>Non</option></select>
+<div id='grp_taux_hs' class='hide'><input id='Taux_heures_sup' type='number'></div>
+<input id='Vacances_jours' type='number'>
+</div></div>
+<div class='item'><button class='head'>G. Infos compléter</button><div class='content'>
+<textarea id='Informations_complementaires'></textarea>
+<input type='file' id='Documents_supplementaires' multiple>
+</div></div>
+</div>
+<button id='btn_submit'>Soumettre</button><div id='msg'></div>
+<script src='app.js'></script>
+</body></html>
