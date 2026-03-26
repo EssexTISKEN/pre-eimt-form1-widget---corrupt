@@ -1,33 +1,33 @@
-ZOHO.embeddedApp.on("PageLoad", async function(data) {
+ZOHO.embeddedApp.on("PageLoad", async function (data) {
 
     /* ============================================================
-       Initialisation & utilitaires
+       Utils
     ============================================================ */
-
-    const $ = id => document.getElementById(id);
+    const $ = (id) => document.getElementById(id);
     const show = (id, flag) => {
         const el = $(id);
         if (!el) return;
-        if (flag) el.classList.remove("hidden");
-        else el.classList.add("hidden");
+        el.classList.toggle("hidden", !flag);
     };
-    const dec2 = (n) => {
-        const v = parseFloat(n);
+    const dec2 = (x) => {
+        const v = parseFloat(x);
         return isNaN(v) ? 0 : parseFloat(v.toFixed(2));
     };
 
     /* ============================================================
-       Champs conditionnels
+       Conditionnels
     ============================================================ */
-
-    $("EIMT_anterieure").onchange = () =>
+    $("EIMT_anterieure").onchange = () => {
         show("grp_eimt_pdf", $("EIMT_anterieure").value === "Oui");
+    };
 
-    $("Description_poste_existe").onchange = () =>
+    $("Description_poste_existe").onchange = () => {
         show("grp_desc_pdf", $("Description_poste_existe").value === "Oui");
+    };
 
     $("Tous_meme_salaire").onchange = () => {
         const val = $("Tous_meme_salaire").value;
+
         if (val === "Oui") {
             show("grp_salaire_unique", true);
             show("grp_liste_tet", false);
@@ -41,40 +41,45 @@ ZOHO.embeddedApp.on("PageLoad", async function(data) {
         }
     };
 
-    $("Heures_sup").onchange = () =>
+    $("Heures_sup").onchange = () => {
         show("grp_taux_hs", $("Heures_sup").value === "Oui");
+    };
 
     $("Nb_TET_vises").oninput = () => {
         if ($("Tous_meme_salaire").value === "Non") rebuildRows();
     };
 
+    /* ============================================================
+       Table dynamique des TET
+    ============================================================ */
     const body = $("tbl_body");
 
     function rebuildRows(prefill = []) {
-        const n = Math.max(0, parseInt($("Nb_TET_vises").value || "0", 10));
+        const count = parseInt($("Nb_TET_vises").value || "0", 10);
         body.innerHTML = "";
 
-        for (let i = 0; i < n; i++) {
-            const r = document.createElement("tr");
-            r.innerHTML = `
+        for (let i = 0; i < count; i++) {
+            const row = document.createElement("tr");
+
+            row.innerHTML = `
                 <td><input class="r_prenom"></td>
                 <td><input class="r_nom"></td>
                 <td><input class="r_sal" type="number" step="0.01"></td>
             `;
 
             if (prefill[i]) {
-                r.querySelector(".r_prenom").value = prefill[i].prenom || "";
-                r.querySelector(".r_nom").value = prefill[i].nom || "";
-                r.querySelector(".r_sal").value = prefill[i].salaire || "";
+                row.querySelector(".r_prenom").value = prefill[i].prenom || "";
+                row.querySelector(".r_nom").value = prefill[i].nom || "";
+                row.querySelector(".r_sal").value = prefill[i].salaire || "";
             }
-            body.appendChild(r);
+
+            body.appendChild(row);
         }
     }
 
     /* ============================================================
-       Contexte : récupération du Matter
+       Contexte → récupérer Matter
     ============================================================ */
-
     let matterId = null;
 
     try {
@@ -91,15 +96,14 @@ ZOHO.embeddedApp.on("PageLoad", async function(data) {
     /* ============================================================
        Préremplissage
     ============================================================ */
-
     if (matterId) {
         try {
-            const resp = await ZOHO.CRM.API.getRecord({
+            const rec = await ZOHO.CRM.API.getRecord({
                 Entity: "Matters",
                 RecordID: matterId
             });
-            const m = resp?.data?.[0];
 
+            const m = rec?.data?.[0];
             if (m) {
                 if (m.C_P_lieu_de_travail && !$("CodePostal_LieuTravail").value) {
                     $("CodePostal_LieuTravail").value = m.C_P_lieu_de_travail;
@@ -128,10 +132,11 @@ ZOHO.embeddedApp.on("PageLoad", async function(data) {
     }
 
     /* ============================================================
-       Soumission
+       Soumission vers PRE_EIMT_Formulaire_1
     ============================================================ */
 
     $("btn_submit").onclick = async () => {
+
         $("msg").textContent = "Traitement...";
 
         const payload = {
@@ -168,3 +173,22 @@ ZOHO.embeddedApp.on("PageLoad", async function(data) {
                 Entity: "PRE_EIMT_Formulaire_1",
                 APIData: [payload]
             });
+
+            if (ins?.data?.[0]?.code === "SUCCESS") {
+                $("msg").textContent = "Soumis avec succès!";
+                alert("Soumis.");
+            } else {
+                $("msg").textContent = "Erreur lors de la création.";
+                console.error(ins);
+            }
+
+        } catch (e) {
+            console.error(e);
+            $("msg").textContent = "Erreur inattendue.";
+        }
+    };
+
+});
+
+/* Obligatoire */
+ZOHO.embeddedApp.init();
