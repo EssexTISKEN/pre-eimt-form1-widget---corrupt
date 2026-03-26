@@ -1,122 +1,139 @@
 /* --------------------------------------------------------------
-   1. Typographie & Mise en page générale
+   RESET DE BASE (adapté à Zoho)
 -------------------------------------------------------------- */
+* {
+  box-sizing: border-box;
+}
 
 body {
-  font-family: "Segoe UI", Roboto, Arial, sans-serif;
-  margin: 24px;
+  margin: 0;
   background: #f5f6fa;
-  color: #222;
-  line-height: 1.5;
-}
-
-h1 {
-  margin-bottom: 24px;
-  font-size: 26px;
-  font-weight: 600;
-  color: #222;
-}
-
-h2 {
-  margin: 0 0 16px 0;
-  font-size: 20px;
-  color: #2a2a2a;
-  font-weight: 600;
+  font-family: "Inter", "Segoe UI", Roboto, Arial, sans-serif;
+  color: #4d555b;
+  line-height: 1.6;
+  padding: 32px;
 }
 
 /* --------------------------------------------------------------
-   2. Sections principales (A, B, C, D, G)
+   TITRE PRINCIPAL
 -------------------------------------------------------------- */
+h1 {
+  font-size: 28px;
+  font-weight: 600;
+  color: #044580;  /* bleu foncé (fiabilité) */
+  margin-bottom: 24px;
+}
 
+/* --------------------------------------------------------------
+   SECTIONS A–G (style Stripe)
+-------------------------------------------------------------- */
 section {
   background: #ffffff;
-  border: 1px solid #dcdde1;
-  border-radius: 8px;
-  padding: 20px;
-  margin-bottom: 28px;
-  box-shadow: 0 1px 2px rgba(0,0,0,0.06);
+  border: 1px solid #e7e9ec;
+  border-radius: 10px;
+  padding: 24px;
+  margin-bottom: 32px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.04);
 }
 
+section h2 {
+  font-size: 20px;
+  font-weight: 600;
+  color: #056abf; /* bleu moyen */
+  margin-top: 0;
+  margin-bottom: 20px;
+}
+
+/* --------------------------------------------------------------
+   LABELS & INPUTS
+-------------------------------------------------------------- */
 label {
   display: block;
-  margin-bottom: 16px;
+  margin-bottom: 18px;
+  font-size: 15px;
   font-weight: 500;
-  color: #333;
+  color: #4d555b;
 }
 
-label input,
-label select,
-label textarea {
-  display: block;
+input,
+select,
+textarea {
   width: 100%;
+  padding: 10px 14px;
   margin-top: 6px;
-  padding: 10px;
+  border: 1px solid #c1c4c6;
   border-radius: 6px;
-  border: 1px solid #c8c9cc;
-  background: #fff;
   font-size: 15px;
+  background: #fff;
+  color: #4d555b;
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+  outline: none;
+  border-color: #49dcee;          /* bleu clair */
+  box-shadow: 0 0 0 2px rgba(73, 220, 238, 0.3);
 }
 
 textarea {
-  min-height: 100px;
+  min-height: 110px;
   resize: vertical;
 }
 
 /* --------------------------------------------------------------
-   3. Accordéon conditionnel (uniquement les questions conditionnelles)
+   ACCORDÉONS CONDITIONNELS (style Stripe)
 -------------------------------------------------------------- */
-
 .conditional-accordion .item {
-  border: 1px solid #dcdde1;
-  border-radius: 6px;
-  margin: 12px 0;
-  background: #fafbff;
+  border: 1px solid #e0e4e8;
+  border-radius: 8px;
+  margin: 14px 0;
   overflow: hidden;
+  background: #ffffff;
 }
 
-/* header clickable */
 .conditional-accordion .head {
-  background: #eef3ff;
-  color: #223;
-  padding: 12px 14px;
+  padding: 14px 16px;
+  background: #f0f8ff;
   cursor: pointer;
   font-weight: 600;
-  border-radius: 6px 6px 0 0;
+  color: #044580;
+  font-size: 15px;
   position: relative;
 }
 
-/* petit chevron */
+.conditional-accordion .head:hover {
+  background: #e8f5ff;
+}
+
 .conditional-accordion .head::after {
   content: "▾";
+  font-size: 16px;
   position: absolute;
   right: 14px;
-  top: 12px;
-  font-size: 14px;
-  transition: transform 0.2s ease;
+  top: 14px;
+  transition: transform 0.25s ease;
 }
 
 .conditional-accordion .item.open .head::after {
   transform: rotate(-180deg);
 }
 
-/* contenu */
 .conditional-accordion .content {
-  background: #fff;
-  padding: 12px 14px;
-  overflow: hidden;
   max-height: 0;
+  overflow: hidden;
+  padding: 0 16px;
   transition: max-height 0.35s ease;
+  background: white;
 }
 
-.conditional-accordion .content input,
-.conditional-accordion .content select {
-  width: 100%;
+.conditional-accordion .item.open .content {
+  padding: 16px;
 }
 
 /* --------------------------------------------------------------
-   4. Tableau TET
+   TABLEAU DES TET
 -------------------------------------------------------------- */
-
 table {
   width: 100%;
   border-collapse: collapse;
@@ -124,48 +141,67 @@ table {
 }
 
 th, td {
-  padding: 10px;
-  border: 1px solid #dcdde1;
+  padding: 12px;
+  border: 1px solid #e3e5e8;
   text-align: left;
+  font-size: 14px;
 }
 
 th {
-  background: #eef3ff;
+  background: #f0f8ff;
+  color: #044580;
   font-weight: 600;
 }
 
 /* --------------------------------------------------------------
-   5. Bouton Soumettre
+   FILE UPLOAD clean
 -------------------------------------------------------------- */
-
-button#btn_submit {
-  background: #3d7afe;
-  color: white;
-  padding: 14px 22px;
-  font-size: 16px;
-  border-radius: 6px;
+input[type="file"] {
+  padding: 6px;
   border: none;
+  font-size: 14px;
+}
+
+/* --------------------------------------------------------------
+   BOUTON SOUMETTRE — STYLE STRIPE + VERT ACCENT
+-------------------------------------------------------------- */
+#btn_submit {
+  background: linear-gradient(135deg, #20c003, #70f012);
+  border: none;
+  padding: 14px 26px;
+  color: #fff;
+  font-size: 16px;
+  font-weight: 600;
+  border-radius: 8px;
   cursor: pointer;
   margin-top: 10px;
-  font-weight: 600;
-  transition: background 0.2s ease;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
 }
 
-button#btn_submit:hover {
-  background: #2f67d8;
+#btn_submit:hover {
+  box-shadow: 0 4px 10px rgba(32, 192, 3, 0.25);
+  transform: translateY(-2px);
 }
 
+#btn_submit:active {
+  transform: translateY(0px);
+  box-shadow: none;
+}
+
+/* --------------------------------------------------------------
+   MESSAGE
+-------------------------------------------------------------- */
 #msg {
   margin-top: 12px;
   font-size: 15px;
   font-weight: 500;
-  color: #444;
+  color: #056abf;
 }
 
 /* --------------------------------------------------------------
-   6. Helpers
+   HELPERS
 -------------------------------------------------------------- */
-
 .hide {
   display: none !important;
 }
+``
