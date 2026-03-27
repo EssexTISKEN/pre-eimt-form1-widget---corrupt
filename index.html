@@ -43,11 +43,11 @@
     </label>
 
     <div id="grp_eimt_pdf" class="conditional hidden">
-      <label>
-        2. Si oui, veuillez téléverser la copie PDF de l’EIMT précédente :
-        <input type="file" id="EIMT_anterieure_pdf"
-               accept=".pdf,.jpg,.jpeg,.png,.doc,.docx">
-      </label>
+      <div class="dropzone" data-target="EIMT_anterieure_pdf">
+        <p>Déposez votre fichier ici ou <span>cliquez pour parcourir</span></p>
+        <input type="file" id="EIMT_anterieure_pdf" hidden>
+        <div class="file-list" id="EIMT_anterieure_pdf_list"></div>
+      </div>
     </div>
   </section>
 
@@ -70,11 +70,11 @@
     </label>
 
     <div id="grp_desc_pdf" class="conditional hidden">
-      <label>
-        5. Si oui, veuillez téléverser la description du poste :
-        <input type="file" id="Description_poste_pdf"
-               accept=".pdf,.doc,.docx">
-      </label>
+      <div class="dropzone" data-target="Description_poste_pdf">
+        <p>Déposez votre fichier ici ou <span>cliquez pour parcourir</span></p>
+        <input type="file" id="Description_poste_pdf" hidden>
+        <div class="file-list" id="Description_poste_pdf_list"></div>
+      </div>
     </div>
 
     <label>
@@ -179,14 +179,7 @@
         <option>Non</option>
       </select>
     </label>
-    
-<div id="grp_regime_retraite" class="conditional hidden">
-  <label>
-    20. Si oui, veuillez décrire le régime de retraite :
-    <textarea id="Description_regime_retraite"></textarea>
-  </label>
-</div>
-    
+
     <div id="grp_regime_retraite" class="conditional hidden">
       <label>
         20. Si oui, veuillez décrire le régime de retraite :
@@ -249,13 +242,6 @@
       </select>
     </label>
 
-<div id="grp_travail_partage" class="conditional hidden">
-  <label>
-    28. Si oui, veuillez décrire les circonstances relatives à votre participation au programme et préciser si celui-ci concerne le(s) travailleur(s) visés :
-    <textarea id="Travail_partage_details"></textarea>
-  </label>
-</div>
-    
     <div id="grp_travail_partage" class="conditional hidden">
       <label>
         28. Si oui, veuillez décrire les circonstances relatives à votre participation au programme et préciser si celui-ci concerne le(s) travailleur(s) visés :
@@ -274,10 +260,12 @@
       <textarea id="Informations_complementaires"></textarea>
     </label>
 
-    <label>
-      30. Voulez-vous téléverser d’autres documents pertinents ?
-      <input type="file" id="Documents_supplementaires" multiple>
-    </label>
+    <label>30. Voulez-vous téléverser d’autres documents pertinents ?</label>
+    <div class="dropzone" data-target="Documents_supplementaires">
+      <p>Déposez vos fichiers ici ou <span>cliquez pour parcourir</span></p>
+      <input type="file" id="Documents_supplementaires" multiple hidden>
+      <div class="file-list" id="Documents_supplementaires_list"></div>
+    </div>
 
   </section>
 
