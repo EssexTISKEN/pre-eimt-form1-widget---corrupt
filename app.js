@@ -15,17 +15,67 @@ ZOHO.embeddedApp.on("PageLoad", async function (data) {
     };
 
     /* ============================================================
+       Drag & Drop initialisation
+    ============================================================ */
+    function initDropzones() {
+        document.querySelectorAll(".dropzone").forEach(zone => {
+
+            const input = zone.querySelector("input[type='file']");
+            const list = zone.querySelector(".file-list");
+
+            // Click → ouvrir sélection
+            zone.addEventListener("click", () => input.click());
+
+            // Drag over
+            zone.addEventListener("dragover", (e) => {
+                e.preventDefault();
+                zone.classList.add("dragover");
+            });
+
+            // Drag leave
+            zone.addEventListener("dragleave", () => {
+                zone.classList.remove("dragover");
+            });
+
+            // Drop
+            zone.addEventListener("drop", (e) => {
+                e.preventDefault();
+                zone.classList.remove("dragover");
+
+                const dt = new DataTransfer();
+                for (const f of e.dataTransfer.files) dt.items.add(f);
+                input.files = dt.files;
+
+                updateList();
+            });
+
+            // Via clic
+            input.addEventListener("change", updateList);
+
+            function updateList() {
+                list.innerHTML = "";
+                if (!input.files || input.files.length === 0) return;
+
+                [...input.files].forEach(file => {
+                    const item = document.createElement("div");
+                    item.textContent = file.name;
+                    list.appendChild(item);
+                });
+            }
+        });
+    }
+
+    initDropzones();
+
+    /* ============================================================
        Conditionnels
     ============================================================ */
-    // 1–2 EIMT
     $("EIMT_anterieure").onchange = () =>
         show("grp_eimt_pdf", $("EIMT_anterieure").value === "Oui");
 
-    // 4–5 Description du poste
     $("Description_poste_existe").onchange = () =>
         show("grp_desc_pdf", $("Description_poste_existe").value === "Oui");
 
-    // 11–12/13 Salaire unique ou liste TET
     $("Tous_meme_salaire").onchange = () => {
         const val = $("Tous_meme_salaire").value;
         if (val === "Oui") {
@@ -41,19 +91,17 @@ ZOHO.embeddedApp.on("PageLoad", async function (data) {
         }
     };
 
-    // 14–15 Heures supplémentaires
     $("Heures_sup").onchange = () =>
         show("grp_taux_hs", $("Heures_sup").value === "Oui");
 
-    // **19–20 Régime de retraite (NOUVEAU)**
+    // 19→20 Régime de retraite
     $("Regime_retraite").onchange = () =>
         show("grp_regime_retraite", $("Regime_retraite").value === "Oui");
 
-    // **27–28 Travail partagé (NOUVEAU)**
+    // 27→28 Travail partagé
     $("Travail_partage").onchange = () =>
         show("grp_travail_partage", $("Travail_partage").value === "Oui");
 
-    // Dynamique : nombre de TET
     $("Nb_TET_vises").oninput = () => {
         if ($("Tous_meme_salaire").value === "Non") rebuildRows();
     };
