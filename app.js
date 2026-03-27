@@ -1,28 +1,31 @@
-ZOHO.embeddedApp.on("PageLoad", async function(data) {
+ZOHO.embeddedApp.on("PageLoad", async function (data) {
 
-    const $ = id => document.getElementById(id);
+    /* ============================================================
+       Utils
+    ============================================================ */
+    const $ = (id) => document.getElementById(id);
     const show = (id, flag) => {
         const el = $(id);
         if (!el) return;
-        if (flag) el.classList.remove("hidden");
-        else el.classList.add("hidden");
+        el.classList.toggle("hidden", !flag);
     };
-
     const dec2 = (n) => {
         const v = parseFloat(n);
         return isNaN(v) ? 0 : parseFloat(v.toFixed(2));
     };
 
-    // --------------------------------------------------------------------
-    // Champs conditionnels
-    // --------------------------------------------------------------------
-
+    /* ============================================================
+       Conditionnels
+    ============================================================ */
+    // 1–2 EIMT
     $("EIMT_anterieure").onchange = () =>
         show("grp_eimt_pdf", $("EIMT_anterieure").value === "Oui");
 
+    // 4–5 Description du poste
     $("Description_poste_existe").onchange = () =>
         show("grp_desc_pdf", $("Description_poste_existe").value === "Oui");
 
+    // 11–12/13 Salaire unique ou liste TET
     $("Tous_meme_salaire").onchange = () => {
         const val = $("Tous_meme_salaire").value;
         if (val === "Oui") {
@@ -38,13 +41,26 @@ ZOHO.embeddedApp.on("PageLoad", async function(data) {
         }
     };
 
+    // 14–15 Heures supplémentaires
     $("Heures_sup").onchange = () =>
         show("grp_taux_hs", $("Heures_sup").value === "Oui");
 
+    // **19–20 Régime de retraite (NOUVEAU)**
+    $("Regime_retraite").onchange = () =>
+        show("grp_regime_retraite", $("Regime_retraite").value === "Oui");
+
+    // **27–28 Travail partagé (NOUVEAU)**
+    $("Travail_partage").onchange = () =>
+        show("grp_travail_partage", $("Travail_partage").value === "Oui");
+
+    // Dynamique : nombre de TET
     $("Nb_TET_vises").oninput = () => {
         if ($("Tous_meme_salaire").value === "Non") rebuildRows();
     };
 
+    /* ============================================================
+       Tableau TET
+    ============================================================ */
     const body = $("tbl_body");
 
     function rebuildRows(prefill = []) {
@@ -53,6 +69,7 @@ ZOHO.embeddedApp.on("PageLoad", async function(data) {
 
         for (let i = 0; i < n; i++) {
             const r = document.createElement("tr");
+
             r.innerHTML = `
                 <td><input class="r_prenom"></td>
                 <td><input class="r_nom"></td>
@@ -64,14 +81,14 @@ ZOHO.embeddedApp.on("PageLoad", async function(data) {
                 r.querySelector(".r_nom").value = prefill[i].nom || "";
                 r.querySelector(".r_sal").value = prefill[i].salaire || "";
             }
+
             body.appendChild(r);
         }
     }
 
-    // --------------------------------------------------------------------
-    // Contexte MATTER
-    // --------------------------------------------------------------------
-
+    /* ============================================================
+       Contexte MATTER
+    ============================================================ */
     let matterId = data?.EntityId || null;
 
     if (!matterId) {
@@ -81,16 +98,16 @@ ZOHO.embeddedApp.on("PageLoad", async function(data) {
         } catch (e) {}
     }
 
-    // --------------------------------------------------------------------
-    // Préremplissage
-    // --------------------------------------------------------------------
-
+    /* ============================================================
+       Préremplissage
+    ============================================================ */
     if (matterId) {
         try {
             const resp = await ZOHO.CRM.API.getRecord({
                 Entity: "Matters",
-                RecordID: matterId
+                RecordID: matterId,
             });
+
             const m = resp?.data?.[0];
 
             if (m) {
@@ -105,7 +122,7 @@ ZOHO.embeddedApp.on("PageLoad", async function(data) {
                     pre.push({
                         prenom: t.TET_Prenom || "",
                         nom: t.TET_Nom || "",
-                        salaire: t.Salaire_horaire || ""
+                        salaire: t.Salaire_horaire || "",
                     });
                 }
 
@@ -120,10 +137,9 @@ ZOHO.embeddedApp.on("PageLoad", async function(data) {
         } catch (e) {}
     }
 
-    // --------------------------------------------------------------------
-    // Soumission
-    // --------------------------------------------------------------------
-
+    /* ============================================================
+       Soumission
+    ============================================================ */
     $("btn_submit").onclick = async () => {
         $("msg").textContent = "Traitement...";
 
@@ -139,18 +155,20 @@ ZOHO.embeddedApp.on("PageLoad", async function(data) {
             Heures_sup: $("Heures_sup").value,
             Vacances_jours: parseInt($("Vacances_jours").value || "0", 10),
             Informations_complementaires: $("Informations_complementaires").value || "",
-            Questionnaire_statut: "Soumis"
+            Questionnaire_statut: "Soumis",
         };
 
         if ($("Tous_meme_salaire").value === "Oui") {
-            payload.Salaire_horaire_unique = dec2($("Salaire_horaire_unique").value);
+            payload.Salaire_horaire_unique = dec2(
+                $("Salaire_horaire_unique").value
+            );
         } else if ($("Tous_meme_salaire").value === "Non") {
             const rows = [];
-            document.querySelectorAll("#tbl_body tr").forEach(tr => {
+            document.querySelectorAll("#tbl_body tr").forEach((tr) => {
                 rows.push({
                     TET_Prenom: tr.querySelector(".r_prenom").value.trim(),
                     TET_Nom: tr.querySelector(".r_nom").value.trim(),
-                    TET_Salaire: dec2(tr.querySelector(".r_sal").value)
+                    TET_Salaire: dec2(tr.querySelector(".r_sal").value),
                 });
             });
             payload.Liste_TET = rows;
@@ -159,8 +177,9 @@ ZOHO.embeddedApp.on("PageLoad", async function(data) {
         try {
             const ins = await ZOHO.CRM.API.insertRecord({
                 Entity: "PRE_EIMT_Formulaire_1",
-                APIData: [payload]
+                APIData: [payload],
             });
+
             if (ins?.data?.[0]?.code === "SUCCESS") {
                 $("msg").textContent = "Soumis avec succès!";
                 alert("Soumis.");
@@ -173,9 +192,7 @@ ZOHO.embeddedApp.on("PageLoad", async function(data) {
             console.error(e);
         }
     };
-
 });
 
 /* Obligatoire */
 ZOHO.embeddedApp.init();
-``
