@@ -4,18 +4,20 @@ ZOHO.embeddedApp.on("PageLoad", async function (data) {
        Utils
     ============================================================ */
     const $ = (id) => document.getElementById(id);
+
     const show = (id, flag) => {
         const el = $(id);
         if (!el) return;
         el.classList.toggle("hidden", !flag);
     };
+
     const dec2 = (n) => {
         const v = parseFloat(n);
         return isNaN(v) ? 0 : parseFloat(v.toFixed(2));
     };
 
     /* ============================================================
-       Drag & Drop initialisation
+       DRAG & DROP INITIALISATION
     ============================================================ */
     function initDropzones() {
         document.querySelectorAll(".dropzone").forEach(zone => {
@@ -23,16 +25,15 @@ ZOHO.embeddedApp.on("PageLoad", async function (data) {
             const input = zone.querySelector("input[type='file']");
             const list = zone.querySelector(".file-list");
 
-            // Click → ouvrir sélection
+            // Cliquer sur la zone → ouvre le file picker
             zone.addEventListener("click", () => input.click());
 
-            // Drag over
+            // Drag over → style visuel
             zone.addEventListener("dragover", (e) => {
                 e.preventDefault();
                 zone.classList.add("dragover");
             });
 
-            // Drag leave
             zone.addEventListener("dragleave", () => {
                 zone.classList.remove("dragover");
             });
@@ -49,17 +50,17 @@ ZOHO.embeddedApp.on("PageLoad", async function (data) {
                 updateList();
             });
 
-            // Via clic
+            // Sélection par file picker
             input.addEventListener("change", updateList);
 
             function updateList() {
                 list.innerHTML = "";
-                if (!input.files || input.files.length === 0) return;
+                if (!input.files) return;
 
                 [...input.files].forEach(file => {
-                    const item = document.createElement("div");
-                    item.textContent = file.name;
-                    list.appendChild(item);
+                    const div = document.createElement("div");
+                    div.textContent = file.name;
+                    list.appendChild(div);
                 });
             }
         });
@@ -67,15 +68,20 @@ ZOHO.embeddedApp.on("PageLoad", async function (data) {
 
     initDropzones();
 
+
     /* ============================================================
        Conditionnels
     ============================================================ */
+
+    // 1–2 EIMT
     $("EIMT_anterieure").onchange = () =>
         show("grp_eimt_pdf", $("EIMT_anterieure").value === "Oui");
 
+    // 4–5 Description du poste
     $("Description_poste_existe").onchange = () =>
         show("grp_desc_pdf", $("Description_poste_existe").value === "Oui");
 
+    // 11–12/13 Salaire unique ou liste TET
     $("Tous_meme_salaire").onchange = () => {
         const val = $("Tous_meme_salaire").value;
         if (val === "Oui") {
@@ -91,20 +97,23 @@ ZOHO.embeddedApp.on("PageLoad", async function (data) {
         }
     };
 
+    // 14–15 Heures sup
     $("Heures_sup").onchange = () =>
         show("grp_taux_hs", $("Heures_sup").value === "Oui");
 
-    // 19→20 Régime de retraite
+    // 19–20 Régime de retraite
     $("Regime_retraite").onchange = () =>
         show("grp_regime_retraite", $("Regime_retraite").value === "Oui");
 
-    // 27→28 Travail partagé
+    // 27–28 Travail partagé
     $("Travail_partage").onchange = () =>
         show("grp_travail_partage", $("Travail_partage").value === "Oui");
 
+    // Dynamique : nombre de TET
     $("Nb_TET_vises").oninput = () => {
         if ($("Tous_meme_salaire").value === "Non") rebuildRows();
     };
+
 
     /* ============================================================
        Tableau TET
@@ -134,6 +143,7 @@ ZOHO.embeddedApp.on("PageLoad", async function (data) {
         }
     }
 
+
     /* ============================================================
        Contexte MATTER
     ============================================================ */
@@ -145,6 +155,7 @@ ZOHO.embeddedApp.on("PageLoad", async function (data) {
             matterId = ctx?.data?.Id || null;
         } catch (e) {}
     }
+
 
     /* ============================================================
        Préremplissage
@@ -185,10 +196,12 @@ ZOHO.embeddedApp.on("PageLoad", async function (data) {
         } catch (e) {}
     }
 
+
     /* ============================================================
        Soumission
     ============================================================ */
     $("btn_submit").onclick = async () => {
+
         $("msg").textContent = "Traitement...";
 
         const payload = {
@@ -207,9 +220,7 @@ ZOHO.embeddedApp.on("PageLoad", async function (data) {
         };
 
         if ($("Tous_meme_salaire").value === "Oui") {
-            payload.Salaire_horaire_unique = dec2(
-                $("Salaire_horaire_unique").value
-            );
+            payload.Salaire_horaire_unique = dec2($("Salaire_horaire_unique").value);
         } else if ($("Tous_meme_salaire").value === "Non") {
             const rows = [];
             document.querySelectorAll("#tbl_body tr").forEach((tr) => {
@@ -235,12 +246,14 @@ ZOHO.embeddedApp.on("PageLoad", async function (data) {
                 $("msg").textContent = "Erreur lors de la création.";
                 console.error(ins);
             }
+
         } catch (e) {
             $("msg").textContent = "Erreur inattendue.";
             console.error(e);
         }
     };
 });
+
 
 /* Obligatoire */
 ZOHO.embeddedApp.init();
