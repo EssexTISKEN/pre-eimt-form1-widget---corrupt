@@ -1,5 +1,6 @@
 <!doctype html>
 <html lang="fr">
+
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -90,7 +91,6 @@
       </select>
     </label>
 
-    <!-- Nouvelle question ajoutée -->
     <label>
       6. Le poste est-il syndiqué ?
       <select id="Poste_syndique">
@@ -124,18 +124,20 @@
   <section>
     <h2>D. Rémunération</h2>
 
-    <label>
-      10. Tous les travailleurs ont-ils le même salaire ?
-      <select id="Tous_meme_salaire">
-        <option value="">—</option>
-        <option>Oui</option>
-        <option>Non</option>
-      </select>
-    </label>
+    <div id="q10">
+      <label>
+        10. Tous les travailleurs ont-ils le même salaire ?
+        <select id="Tous_meme_salaire">
+          <option value="">—</option>
+          <option>Oui</option>
+          <option>Non</option>
+        </select>
+      </label>
+    </div>
 
     <div id="grp_salaire_unique" class="conditional hidden">
       <label>
-        11. Quel est le salaire horaire ?
+        11. Quel est le salaire horaire unique ?
         <input id="Salaire_horaire_unique" type="number" step="0.01" min="0">
       </label>
     </div>
@@ -171,15 +173,19 @@
       <input id="Vacances_jours" type="number" min="0" value="10">
     </label>
 
+    <!-- Nouvelle Q16 multi-select type “tags” -->
     <label>
-  16. Parmi les avantages sociaux suivants, lesquels offrez-vous ?
-  <select id="Avantages_sociaux" multiple>
-    <option>Assurance maladie</option>
-    <option>Assurance dentaire</option>
-    <option>Assurance invalidité</option>
-    <option>Autres</option>
-  </select>
-</label>
+      16. Parmi les avantages sociaux suivants, lesquels offrez-vous ?
+    </label>
+
+    <div id="Avantages_container" class="multi-select">
+      <div class="multi-option" data-value="Assurance maladie">Assurance maladie</div>
+      <div class="multi-option" data-value="Assurance dentaire">Assurance dentaire</div>
+      <div class="multi-option" data-value="Assurance invalidité">Assurance invalidité</div>
+      <div class="multi-option" data-value="Autres">Autres</div>
+    </div>
+
+    <input type="hidden" id="Avantages_sociaux">
 
     <label>
       17. Décrivez les avantages sociaux (détails) :
