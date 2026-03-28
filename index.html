@@ -7,10 +7,10 @@
   <title>Formulaire employeur – PRÉ‑EIMT</title>
 
   <!-- SDK Zoho POUR WEB TABS -->
-  https://live.zwidgets.com/js-sdk/1.2/ZohoEmbededAppSDK.min.js>
+  <script src="https://live.zwidgets.com/js-sdk/1.2/ZohoEmbededAppSDK.min.js"></script>
 
   <!-- Feuille de style -->
-  styles.css
+  <link rel="stylesheet" href="styles.css" />
 </head>
 
 <body>
@@ -90,6 +90,7 @@
       </select>
     </label>
 
+    <!-- Nouvelle question ajoutée -->
     <label>
       6. Le poste est-il syndiqué ?
       <select id="Poste_syndique">
@@ -134,16 +135,16 @@
 
     <div id="grp_salaire_unique" class="conditional hidden">
       <label>
-        11. Si oui, quel est le salaire horaire unique ?
+        11. Quel est le salaire horaire unique ?
         <input id="Salaire_horaire_unique" type="number" step="0.01" min="0">
       </label>
     </div>
 
     <div id="grp_liste_tet" class="conditional hidden">
-      <label>12. Sinon, veuillez indiquer le prénom, le nom et le salaire horaire de chaque TET :</label>
+      <label>12. Veuillez indiquer le prénom, le nom et le salaire horaire de chaque TET :</label>
       <table>
         <thead>
-        <tr><th>Prénom</th><th>Nom</th><th>Salaire horaire</th></tr>
+          <tr><th>Prénom</th><th>Nom</th><th>Salaire horaire</th></tr>
         </thead>
         <tbody id="tbl_body"></tbody>
       </table>
@@ -191,7 +192,7 @@
 
     <div id="grp_regime_retraite" class="conditional hidden">
       <label>
-        19. Si oui, veuillez décrire le régime de retraite :
+        19. Veuillez décrire le régime de retraite :
         <textarea id="Description_regime_retraite"></textarea>
       </label>
     </div>
@@ -237,7 +238,7 @@
 
     <div id="grp_travail_partage" class="conditional hidden">
       <label>
-        25. Si oui, veuillez décrire les circonstances relatives au programme :
+        25. Veuillez décrire les circonstances relatives à votre participation :
         <textarea id="Travail_partage_details"></textarea>
       </label>
     </div>
@@ -256,7 +257,7 @@
     <label>27. Voulez-vous téléverser d’autres documents pertinents ?</label>
     <div class="dropzone" data-target="Documents_supplementaires">
       <p>Déposez vos fichiers ici ou <span>cliquez pour parcourir</span></p>
-      <input type="file" id="Documents_supplementaires" hidden multiple>
+      <input type="file" id="Documents_supplementaires" multiple hidden>
       <div class="file-list" id="Documents_supplementaires_list"></div>
     </div>
 
@@ -266,7 +267,7 @@
   <div id="msg"></div>
 
   <!-- Script logique -->
-  app.js
+  <script src="app.js"></script>
 
 </body>
 </html>
