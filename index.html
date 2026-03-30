@@ -1,0 +1,688 @@
+/* ======================================================
+   APP.EXTERNE – STRUCTURE MODULAIRE
+   (UI complète + placeholders backend)
+====================================================== */
+
+/* ---------- GLOBAL STATE ---------- */
+let PRE_DATA = null;        // données PRE EIMT reçues du backend
+let MATTER_DATA = null;     // données du Matter (optionnel)
+let preId = null;
+
+/* ======================================================
+   INIT – point d’entrée du questionnaire externe
+====================================================== */
+document.addEventListener("DOMContentLoaded", init);
+
+async function init() {
+    try {
+        preId = parsePreIdFromURL();
+        if (!preId) {
+            console.error("❌ Aucun preId dans l’URL.");
+            showMessage("Erreur : questionnaire non initialisé.");
+            return;
+        }
+
+        showMessage("Chargement...");
+
+        /* ---------------------------------------------
+           🔵 CHARGER LES DONNÉES INITIALES (REST GET)
+           TODO : INSÉRER TON APPEL BACKEND ICI
+        ---------------------------------------------- */
+        const result = await LOAD_INITIAL_DATA(preId);   // PLACEHOLDER (non fourni)
+        /*
+            result doit ressembler à :
+            {
+               preData: {...},
+               matterData: {...},
+               listeTET: [...]
+            }
+        */
+        PRE_DATA = result?.preData || {};
+        MATTER_DATA = result?.matterData || {};
+
+        /* ---------- UI ---------- */
+        initUI();
+        initConditionalFields();
+        initDropzones();
+        initTagSelector();
+        initTETLogic();
+
+        preloadForm(PRE_DATA, MATTER_DATA);
+
+        showMessage("");
+    } 
+    catch(e) {
+        console.error("❌ Erreur init()", e);
+        showMessage("Erreur lors de l’initialisation.");
+    }
+}
+/* ======================================================
+   BLOC 1 — UTILITAIRES GÉNÉRAUX (UI + Helpers)
+   Aucun appel externe. 100% safe.
+====================================================== */
+
+/* ---------- Sélecteur simple ---------- */
+const $ = (id) => document.getElementById(id);
+
+/* ---------- Afficher / Cacher ---------- */
+function show(id, flag) {
+    const el = $(id);
+    if (!el) return;
+    el.classList.toggle("hidden", !flag);
+}
+
+/* ---------- Convertir en décimales ---------- */
+function dec2(n) {
+    const v = parseFloat(n);
+    return isNaN(v) ? 0 : parseFloat(v.toFixed(2));
+}
+
+/* ---------- Message utilisateur ---------- */
+function showMessage(msg) {
+    const el = $("msg");
+    if (el) el.textContent = msg;
+}
+
+/* ---------- Lire preId dans l’URL ---------- */
+function parsePreIdFromURL() {
+    const url = new URL(window.location.href);
+    const preId = url.searchParams.get("preId");
+    return preId;
+}
+/* ======================================================
+   BLOC 2 — CHARGER LES DONNÉES INITIALES (PLACEHOLDER)
+   Cette fonction DOIT être remplacée par ton appel REST.
+====================================================== */
+
+async function LOAD_INITIAL_DATA(preId) {
+
+    /* --------------------------------------------------
+       TODO : CALL_BACKEND_GET_PRE_EIMT(preId)
+       --------------------------------------------------
+
+       ➤ Ici, TU dois insérer ton appel REST réel
+         vers ton backend Zoho (function, API REST, etc.)
+
+       ➤ Cette fonction DOIT retourner une structure JSON
+         ressemblant à :
+
+         {
+            preData: { ... },          // Fields du module PRE_EIMT
+            matterData: { ... },       // Fields du Matter lié (optionnel)
+            listeTET: [                // Ton SF Liste_TET
+               { prenom: "...", nom: "...", salaire: ... },
+               ...
+            ]
+         }
+
+       🔒 Il est OBLIGATOIRE que tu insères toi-même :
+         - l’URL Zoho API
+         - les headers Authorization
+         - les tokens / signatures
+         - la logique d’accès
+
+       ⚠️ Aucun appel concret ne peut apparaître ici.
+
+    -------------------------------------------------- */
+
+    // ================================
+    // RETURN D’EXEMPLE (STRUCTURE)
+    // (ne fait rien — à remplacer)
+    // ================================
+    return {
+        preData: {},         // TODO: remplir avec données PRE_EIMT
+        matterData: {},      // TODO: remplir avec données Matter
+        listeTET: []         // TODO: remplir avec SF du PRE_EIMT
+    };
+}
+/* ======================================================
+   BLOC 3 — INITIALISATION UI
+   (Aucun appel API. 100% logique interface.)
+====================================================== */
+
+/* ---------------------------------------------
+   3.1 — Champs conditionnels
+--------------------------------------------- */
+function initConditionalFields() {
+    const bindShow = (triggerId, groupId) => {
+        const el = $(triggerId);
+        if (!el) return;
+        el.onchange = () => show(groupId, el.value === "Oui");
+    };
+
+    bindShow("EIMT_anterieure", "grp_eimt_pdf");
+    bindShow("Description_poste_existe", "grp_desc_pdf");
+    bindShow("Heures_sup", "grp_taux_hs");
+    bindShow("Regime_retraite", "grp_regime_retraite");
+    bindShow("Travail_partage", "grp_travail_partage");
+}
+
+/* ---------------------------------------------
+   3.2 — Multi-tags (Avantages sociaux)
+--------------------------------------------- */
+function initTagSelector() {
+    const container = document.querySelectorAll("#Avantages_container .multi-option");
+    container.forEach(opt => {
+        opt.addEventListener("click", () => {
+            opt.classList.toggle("selected");
+            const selected = [...document.querySelectorAll(".multi-option.selected")]
+                .map(o => o.dataset.value);
+            $("Avantages_sociaux").value = JSON.stringify(selected);
+        });
+    });
+}
+
+/* ---------------------------------------------
+   3.3 — Drag & Drop pour upload fichiers
+   (UI seulement — l'upload réel viendra dans BLOC 8)
+--------------------------------------------- */
+function initDropzones() {
+    document.querySelectorAll(".dropzone").forEach(zone => {
+        const input = zone.querySelector("input[type='file']");
+        const list = zone.querySelector(".file-list");
+
+        zone.addEventListener("click", () => input.click());
+
+        zone.addEventListener("dragover", e => {
+            e.preventDefault();
+            zone.classList.add("dragover");
+        });
+
+        zone.addEventListener("dragleave", () => zone.classList.remove("dragover"));
+
+        zone.addEventListener("drop", e => {
+            e.preventDefault();
+            zone.classList.remove("dragover");
+
+            const dt = new DataTransfer();
+
+            // conserver les fichiers déjà présents
+            if (input.files && input.files.length > 0) {
+                for (const f of input.files) dt.items.add(f);
+            }
+
+            // ajouter les nouveaux fichiers
+            for (const f of e.dataTransfer.files) dt.items.add(f);
+            input.files = dt.files;
+
+            updateFileList();
+        });
+
+        input.addEventListener("change", updateFileList);
+
+        function updateFileList() {
+            list.innerHTML = "";
+            if (!input.files) return;
+            [...input.files].forEach(file => {
+                const div = document.createElement("div");
+                div.textContent = file.name;
+                list.appendChild(div);
+            });
+        }
+    });
+}
+
+/* ---------------------------------------------
+   3.4 — Initialisation UI globale
+--------------------------------------------- */
+function initUI() {
+    // Préparer champs conditionnels
+    initConditionalFields();
+
+    // Préparer tags
+    initTagSelector();
+
+    // Préparer zones drag-and-drop
+    initDropzones();
+}
+/* ======================================================
+   BLOC 4 — TET (Travailleurs) : logique UI et gestion SF
+   Aucune API ici. 100% interface et manipulation DOM.
+====================================================== */
+
+/* Table body contenant les lignes TET */
+let TET_TABLE_BODY = null;
+
+/* ---------------------------------------------
+   4.1 — Initialisation TET
+--------------------------------------------- */
+function initTETLogic() {
+    TET_TABLE_BODY = $("tbl_body");
+
+    // Bind des événements
+    $("Nb_TET_vises").oninput = updateTETLogic;
+    $("Nb_TET_vises").onchange = updateTETLogic;
+    $("Tous_meme_salaire").onchange = updateTETLogic;
+
+    // Premier update
+    updateTETLogic();
+}
+
+/* ---------------------------------------------
+   4.2 — Mettre à jour l’écran selon Nb_TET_vises
+--------------------------------------------- */
+function updateTETLogic() {
+
+    const n = parseInt(($("Nb_TET_vises").value || "0"), 10);
+    const choix = $("Tous_meme_salaire").value;
+
+    // cacher
+    show("q10", false);
+    show("grp_salaire_unique", true);
+    show("grp_liste_tet", false);
+
+    if (n > 1) {
+        show("q10", true);
+
+        if (choix === "Oui") {
+            show("grp_salaire_unique", true);
+            show("grp_liste_tet", false);
+        }
+
+        if (choix === "Non") {
+            show("grp_salaire_unique", false);
+            show("grp_liste_tet", true);
+            rebuildTETRows();   // reconstruit les lignes dynamiques
+        }
+    }
+}
+
+/* ---------------------------------------------
+   4.3 — Reconstruire les lignes du SF TET
+       prefill = tableau facultatif pour préremplissage
+--------------------------------------------- */
+function rebuildTETRows(prefill = []) {
+
+    if (!TET_TABLE_BODY) return;
+
+    const n = Math.max(0, parseInt(($("Nb_TET_vises").value || "0"), 10));
+    TET_TABLE_BODY.innerHTML = "";
+
+    for (let i = 0; i < n; i++) {
+
+        const ligne = document.createElement("tr");
+
+        ligne.innerHTML = `
+            <td><input class="r_prenom"></td>
+            <td><input class="r_nom"></td>
+            <td><input class="r_sal" type="number" step="0.01"></td>
+        `;
+
+        // Pré-remplissage si disponible
+        if (prefill[i]) {
+            ligne.querySelector(".r_prenom").value = prefill[i].prenom || "";
+            ligne.querySelector(".r_nom").value = prefill[i].nom || "";
+            ligne.querySelector(".r_sal").value = prefill[i].salaire || "";
+        }
+
+        TET_TABLE_BODY.appendChild(ligne);
+    }
+}
+
+/* ---------------------------------------------
+   4.4 — Préremplir le formulaire complet
+       (appelé après LOAD_INITIAL_DATA)
+--------------------------------------------- */
+function preloadForm(preData, matterData) {
+
+    if (!preData) return;
+
+    // Exemple de champs PRE (à adapter selon ce que ton backend renvoie)
+    if (preData.Titre_poste) $("Titre_poste").value = preData.Titre_poste;
+    if (preData.Nb_TET_vises) $("Nb_TET_vises").value = preData.Nb_TET_vises;
+    if (preData.Tous_meme_salaire) $("Tous_meme_salaire").value = preData.Tous_meme_salaire;
+
+    if (matterData?.Matter_number && $("Matter_number")) {
+        $("Matter_number").value = matterData.Matter_number;
+    }
+
+    // Préremplir logique des champs conditionnels
+    updateTETLogic();
+
+    // Si plusieurs TET → rebuild avec préremplissage
+    if (Array.isArray(preData.listeTET) && preData.listeTET.length > 0) {
+        rebuildTETRows(
+            preData.listeTET.map(t => ({
+                prenom: t.prenom || "",
+                nom: t.nom || "",
+                salaire: t.salaire || ""
+            }))
+        );
+    }
+}
+   /* ======================================================
+   BLOC 5 — CONSTRUIRE LE PAYLOAD À ENVOYER AU BACKEND
+   (UI seulement. Aucun appel REST ici.)
+====================================================== */
+
+/**
+ * Construit le payload final à envoyer au backend.
+ * Conserve la structure PRE_EIMT telle que tu l'utilisais
+ * avec ZOHO.CRM.API.updateRecord().
+ */
+function buildPayload() {
+
+    const payload = {
+
+        /* Champs PRE_EIMT */
+        Matter: PRE_DATA?.Matter?.id || null,
+
+        Titre_poste: $("Titre_poste").value || "",
+        Nb_TET_vises: parseInt(($("Nb_TET_vises").value || "0"), 10),
+        Renouvellement: $("Renouvellement").value,
+
+        Poste_syndique: $("Poste_syndique").value,
+        Adresse_LieuTravail: $("Adresse_LieuTravail").value || "",
+        Ville_LieuTravail: $("Ville_LieuTravail").value || "",
+        CodePostal_LieuTravail: $("CodePostal_LieuTravail").value || "",
+
+        Tous_meme_salaire: $("Tous_meme_salaire").value,
+
+        Heures_sup: $("Heures_sup").value,
+        Vacances_jours: parseInt(($("Vacances_jours").value || "0"), 10),
+
+        Avantages_sociaux: JSON.parse($("Avantages_sociaux").value || "[]"),
+        Avantages_sociaux_details: $("Avantages_details").value || "",
+
+        Regime_retraite: $("Regime_retraite").value,
+        Regime_retraite_details: $("Description_regime_retraite").value || "",
+
+        Informations_complementaires: $("Informations_complementaires").value || "",
+
+        Questionnaire_statut: "Soumis",
+
+        No_ARC: $("ARC").value || "",
+        NEQ: $("NEQ").value || "",
+        Nb_employes_ARC_recu: parseInt(($("Nb_employes_ARC").value || "0"), 10),
+        Revenu_gt_5M_recu: $("Revenus_5M").value,
+
+        Travail_partage_existe: $("Travail_partage").value,
+        Travail_partage_details: $("Travail_partage_details").value || ""
+    };
+
+    /* ---------------------------------------------
+       5.1 — Gestion du salaire
+    --------------------------------------------- */
+    if (payload.Nb_TET_vises === 1 ||
+        payload.Tous_meme_salaire === "Oui") {
+
+        payload.Salaire_horaire_unique = dec2($("Salaire_horaire_unique").value);
+
+    } else if (payload.Tous_meme_salaire === "Non") {
+
+        /* ---------------------------------------------
+           5.2 — Construction du sous-formulaire Liste_TET
+        --------------------------------------------- */
+        const rows = [];
+        document.querySelectorAll("#tbl_body tr").forEach(tr => {
+            rows.push({
+                Pr_nom_du_Travailleur: tr.querySelector(".r_prenom").value.trim(),
+                Nom_du_Travailleur: tr.querySelector(".r_nom").value.trim(),
+                Salaire_horaire: dec2(tr.querySelector(".r_sal").value)
+            });
+        });
+        payload.Liste_TET = rows;
+    }
+
+    return payload;
+}   
+      /* ======================================================
+   BLOC 6 — DÉTECTION SF (Liste_TET) MODIFIÉ
+   Compare l'ancien SF (PRE_DATA.listeTET)
+   avec le nouveau SF (payload.Liste_TET).
+   Aucune API. 100% logique interne.
+====================================================== */
+
+function detectSFChanged(oldSF, newSF) {
+
+    // Sécurité minimale
+    const oldRows = Array.isArray(oldSF) ? oldSF : [];
+    const newRows = Array.isArray(newSF) ? newSF : [];
+
+    let sfChanged = false;
+
+    /* ---------------------------------------------
+       6.1 — Si le nombre de lignes diffère
+    --------------------------------------------- */
+    if (oldRows.length !== newRows.length) {
+        return true;
+    }
+
+    /* ---------------------------------------------
+       6.2 — Comparaison ligne par ligne
+    --------------------------------------------- */
+    for (let i = 0; i < oldRows.length; i++) {
+        const a = oldRows[i];
+        const b = newRows[i];
+
+        // Normalisation des valeurs
+        const aPrenom = a.Pr_nom_du_Travailleur || a.prenom || "";
+        const aNom    = a.Nom_du_Travailleur || a.nom    || "";
+        const aSal    = Number(a.Salaire_horaire || a.salaire || 0);
+
+        const bPrenom = b.Pr_nom_du_Travailleur || b.prenom || "";
+        const bNom    = b.Nom_du_Travailleur || b.nom    || "";
+        const bSal    = Number(b.Salaire_horaire || b.salaire || 0);
+
+#if (aPrenom !== bPrenom || aNom !== bNom || aSal !== bSal) {         
+ sfChanged = true;
+ 
+ break; 
+} 
+ 
+} 
+ 
+return sfChanged; 
+} 
+      /* ======================================================
+   BLOC 8 — UPLOAD DES FICHIERS
+   (UI 100% fonctionnelle + placeholders backend)
+   ⚠️ Aucun upload réel ici.
+   ⚠️ À toi d’insérer tes appels REST.
+====================================================== */
+
+/**
+ * Récupère les fichiers d’un input donné et les prépare
+ * pour l’envoi vers ton backend REST.
+ *
+ * @param {string} inputId — l’ID <input type="file">
+ * @param {string} apiFieldName — nom du champ PRE_EIMT côté CRM
+ */
+async function processFileUpload(inputId, apiFieldName) {
+    const input = $(inputId);
+    if (!input || !input.files || input.files.length === 0) {
+        return [];   // rien à uploader
+    }
+
+    const files = [...input.files];
+
+    /* --------------------------------------------------
+       TODO : CALL_BACKEND_UPLOAD_FILES(files, apiFieldName)
+       -----------------------------------------------
+       ⚠️ À REMPLACER PAR TON APPEL EXTERNE.
+
+       Ton backend devra :
+         1) recevoir la liste de fichiers
+         2) appeler l’API Zoho CRM (REST) pour uploader chaque fichier
+         3) retourner un statut { success: true }
+       
+       Format attendu :
+         const result = await CALL_BACKEND_UPLOAD_FILES({
+             preId,
+             field: apiFieldName,
+             files
+         });
+
+       Ici, on renvoie un mock :
+    -------------------------------------------------- */
+
+    const result = { success: true };   // placeholder mock
+    return result;
+}
+
+/**
+ * Appelle processFileUpload pour chacun des champs
+ * qui contiennent potentiellement des fichiers.
+ */
+async function handleAllUploads() {
+
+    // Ces champs doivent correspondre à tes inputs HTML.
+    // Tu peux en rajouter ici si ton app évolue.
+    const uploads = [
+        { inputId: "EIMT_anterieure_pdf",     field: "EIMT_anterieure_pdf" },
+        { inputId: "Description_poste_pdf",  field: "Description_poste_pdf" },
+        { inputId: "Documents_supplementaires", field: "Documents_supplementaires" }
+    ];
+
+    for (const up of uploads) {
+        try {
+            await processFileUpload(up.inputId, up.field);
+        } catch (e) {
+            console.error("❌ Erreur upload fichier (placeholder)", up, e);
+        }
+    }
+}
+      ========================================================
+BLOC 9 — PSEUDO-CODE D’ASSEMBLAGE FINAL DE L’APP.JS
+========================================================
+
+STRUCTURE DU PROGRAMME
+----------------------
+
+0. Lorsque la page s’ouvre (DOMContentLoaded) :
+    - appeler init()
+
+--------------------------------------------------------
+
+FONCTION init():
+----------------
+1. Lire preId dans l'URL via parsePreIdFromURL()
+   SI preId est vide → afficher un message d’erreur et arrêter.
+
+2. Afficher "Chargement…"
+
+3. appeler LOAD_INITIAL_DATA(preId)
+   (PLACEHOLDER : appel REST côté backend)
+      - backend lit PRE_EIMT
+      - backend lit Matter (lookup)
+      - backend lit Liste_TET
+      - backend renvoie preData, matterData, listeTET
+
+4. Stocker ces données dans :
+      PRE_DATA = result.preData
+      MATTER_DATA = result.matterData
+
+5. Préremplir les champs UI :
+      preloadForm(PRE_DATA, MATTER_DATA)
+
+6. Initialiser la logique UI :
+      initUI()
+      initConditionalFields()
+      initDropzones()
+      initTagSelector()
+      initTETLogic()
+
+7. Initialiser le bouton de soumission :
+      initSubmitHandler()
+
+8. Effacer le message "Chargement…"
+
+
+--------------------------------------------------------
+
+FONCTION initSubmitHandler():
+----------------------------
+1. Lorsque l’utilisateur clique sur "Soumettre" :
+
+2. afficher "Traitement…"
+
+3. Construire le payload :
+      payload = buildPayload()
+
+4. Déterminer si le SF Liste_TET a changé :
+      oldSF = PRE_DATA.listeTET
+      newSF = payload.Liste_TET
+      sfChanged = detectSFChanged(oldSF, newSF)
+
+5. SI sfChanged = true :
+         payload.PRE_SF_Touch_TS = maintenant (ISO)
+
+6. Envoyer le payload au backend :
+   (PLACEHOLDER : SUBMIT_PRE_EIMT(payload))
+      - Le backend met à jour PRE_EIMT
+      - Le backend déclenche ton workflow PRE
+      - Workflow PRE appelle SYNC_PRE_TO_MATTER côté CRM
+      - SYNC_PRE_TO_MATTER gère :
+           • Contacts (create/update)
+           • Matter.Info_TET (mise à jour)
+           • Dossiers SharePoint (rename)
+           • Anti-boucles
+      - Backend renvoie { success: true } ou { error }      
+
+7. SI réponse backend.error :
+         afficher "Erreur"
+
+8. Sinon (succès) :
+         appeler handleAllUploads()
+         (PLACEHOLDER : UPLOAD_FILES → backend → CRM)
+         afficher "Soumis avec succès"
+         afficher une alerte
+
+
+--------------------------------------------------------
+
+FONCTION handleAllUploads():
+---------------------------
+1. Pour chaque champ fichier :
+      - lire input.files
+      - SI pas de fichier : ignorer
+      - appeler processFileUpload(inputId, fieldName)
+
+2. processFileUpload():
+      (PLACEHOLDER : CALL_BACKEND_UPLOAD_FILES)
+         - backend reçoit le fichier
+         - backend utilise CRM REST → upload du fichier
+         - backend renvoie { success: true }
+
+3. Retour à initSubmitHandler()
+
+
+--------------------------------------------------------
+
+FONCTION LOAD_INITIAL_DATA(preId):
+----------------------------------
+(PSEUDO-CODE PLACEHOLDER)
+
+1. Faire un appel REST vers ton backend avec preId
+2. backend lit :
+      - PRE_EIMT
+      - Matter lié
+      - Liste_TET
+3. backend assemble :
+      { preData, matterData, listeTET }
+4. backend renvoie cela à ton frontend
+5. retourner ces données
+
+
+--------------------------------------------------------
+
+COHÉRENCE DU FLUX GLOBAL
+------------------------
+Le comportement attendu après ce BLOC 9 est exactement :
+
+CLIENT → (formulaire externe Netlify)  
+ → SUBMIT_PRE_EIMT (backend)  
+ → Update PRE_EIMT  
+ → PRE_SF_Touch_TS modifié  
+ → Workflow PRE_EIMT déclenché  
+ → SYNC_PRE_TO_MATTER  
+ → Mise à jour Contacts  
+ → Mise à jour Matter.Info_TET  
+ → Rename SharePoint  
+ → Anti-boucles  
+ → Retour au client → "Soumis avec succès"
+
+
+========================================================
+FIN BLOC 9 — PSEUDO-CODE COMPLET
+========================================================
